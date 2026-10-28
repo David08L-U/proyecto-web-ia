@@ -174,3 +174,79 @@ body {
   .encabezado { padding-top: 1.5rem; }
   .grid { gap: 1rem; }
 }
+
+/* ===== 8. Buscador y filtros ===== */
+.controles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-bottom: 2rem;
+}
+
+.buscador,
+.filtro {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  font-size: 1rem;
+  color: var(--texto);
+  background: rgba(11, 29, 46, 0.8);
+  border: 2px solid var(--azul-medio);
+  border-radius: 12px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.buscador:focus,
+.filtro:focus {
+  border-color: var(--verde-portal);
+  box-shadow: 0 0 10px rgba(151, 206, 76, 0.4);
+}
+
+.filtro option { background: var(--azul-oscuro); }
+
+/* En celular los filtros van uno debajo del otro; en pantallas anchas, lado a lado */
+.filtros {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.8rem;
+}
+
+/* ===== 9. Secciones y favoritos ===== */
+.seccion-titulo {
+  color: var(--azul-cielo);
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+}
+
+.favoritos {
+  margin-bottom: 2.5rem;
+  padding-bottom: 2rem;
+  border-bottom: 2px dashed var(--azul-medio);
+}
+
+/* Para poder colocar la estrella encima de la foto */
+.tarjeta { position: relative; }
+
+.btn-fav {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 44px;
+  height: 44px;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--texto);
+  background: rgba(11, 29, 46, 0.75);
+  border: 2px solid var(--azul-cielo);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.btn-fav:hover { transform: scale(1.15); }
+
+.btn-fav.activo {
+  color: var(--azul-oscuro);
+  background: var(--verde-portal);
+  border-color: var(--verde-neon);
+}
