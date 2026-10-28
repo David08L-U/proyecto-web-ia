@@ -18,6 +18,7 @@
     <nav class="pestanas" role="tablist" aria-label="Secciones">
       <button class="pestana activa" type="button" role="tab" aria-selected="true" data-vista="personajes">🧪 Personajes</button>
       <button class="pestana" type="button" role="tab" aria-selected="false" data-vista="favoritos">⭐ Favoritos (<span id="contador-favoritos">0</span>)</button>
+      <button class="pestana" type="button" role="tab" aria-selected="false" data-vista="comparar">⚖️ Comparar (<span id="contador-comparar">0</span>/2)</button>
     </nav>
 
     <!-- ===== Vista 1: Personajes ===== -->
@@ -63,6 +64,12 @@
         Todavía no tienes favoritos. Toca la estrella ☆ de cualquier personaje para guardarlo aquí.
       </p>
       <div id="lista-favoritos" class="grid"></div>
+    </section>
+
+    <!-- ===== Vista 3: Comparar ===== -->
+    <section id="vista-comparar" class="vista" hidden>
+      <h2 class="seccion-titulo">⚖️ Comparar personajes</h2>
+      <div id="comparacion"></div>
     </section>
   </main>
 
