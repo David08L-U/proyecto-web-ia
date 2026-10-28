@@ -12,6 +12,8 @@ const favoritosVacio = document.getElementById("favoritos-vacio");
 const listaFavoritos = document.getElementById("lista-favoritos");
 const pestanas = document.querySelector(".pestanas");
 const contadorFavoritos = document.getElementById("contador-favoritos");
+const contadorComparar = document.getElementById("contador-comparar");
+const comparacion = document.getElementById("comparacion");
 
 // Guardamos la URL de la siguiente página que nos da la API
 let siguientePagina = API_URL;
@@ -21,6 +23,9 @@ let peticionActual = 0;
 
 // Nombre con el que guardamos los favoritos en localStorage
 const CLAVE_FAVORITOS = "rym-favoritos";
+
+// Personajes elegidos para comparar (máximo 2). Solo viven en memoria.
+let seleccionados = [];
 
 // Traducciones simples para mostrar los datos en español
 const TRADUCCIONES = {
@@ -91,6 +96,7 @@ function crearTarjeta(p) {
       <p class="dato"><strong>Descripción</strong>${crearDescripcion(p)}</p>
       <p class="dato"><strong>Origen</strong>${traducir(p.origin.name)}</p>
       <p class="dato"><strong>Última ubicación conocida</strong>${traducir(p.location.name)}</p>
+      <button class="btn-comparar" data-id="${p.id}" type="button"></button>
     </div>
   `;
 
@@ -98,6 +104,11 @@ function crearTarjeta(p) {
   const btnFav = tarjeta.querySelector(".btn-fav");
   pintarBotonFav(btnFav, esFavorito(p.id));
   btnFav.addEventListener("click", () => alternarFavorito(p));
+
+  // Botón de comparar
+  const btnComparar = tarjeta.querySelector(".btn-comparar");
+  pintarBotonComparar(btnComparar, estaSeleccionado(p.id));
+  btnComparar.addEventListener("click", () => alternarComparacion(p));
 
   return tarjeta;
 }
@@ -332,6 +343,104 @@ function cambiarVista(nombre) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+/* ===== Comparar dos personajes ===== */
+
+function estaSeleccionado(id) {
+  return seleccionados.some((s) => s.id === id);
+}
+
+function pintarBotonComparar(boton, activo) {
+  boton.textContent = activo ? "✓ Seleccionado" : "⚖️ Comparar";
+  boton.classList.toggle("activo", activo);
+}
+
+/** Repinta todos los botones "Comparar" (en la lista y en favoritos) */
+function actualizarBotonesComparar() {
+  document.querySelectorAll(".btn-comparar").forEach((boton) => {
+    // data-id llega como texto, por eso lo convertimos a número
+    pintarBotonComparar(boton, estaSeleccionado(Number(boton.dataset.id)));
+  });
+}
+
+/** Agrega o quita un personaje de la comparación (máximo 2) */
+function alternarComparacion(p) {
+  if (estaSeleccionado(p.id)) {
+    seleccionados = seleccionados.filter((s) => s.id !== p.id);
+  } else {
+    // Si ya hay 2, sacamos el más antiguo para hacer espacio
+    if (seleccionados.length === 2) seleccionados.shift();
+    seleccionados.push(p);
+  }
+  actualizarBotonesComparar();
+  mostrarComparacion();
+
+  // Con dos personajes elegidos, saltamos directo a la comparación
+  if (seleccionados.length === 2) cambiarVista("comparar");
+}
+
+/** Dibuja la sección de comparación: los dos personajes lado a lado */
+function mostrarComparacion() {
+  contadorComparar.textContent = seleccionados.length;
+
+  if (seleccionados.length < 2) {
+    const elegido = seleccionados[0];
+    comparacion.innerHTML = `
+      <p class="ayuda">
+        ${elegido
+          ? `Elegiste a <strong>${elegido.name}</strong>. Ahora elige un segundo personaje con el botón ⚖️ Comparar.`
+          : "Elige dos personajes con el botón ⚖️ Comparar de cada tarjeta para verlos lado a lado."}
+      </p>`;
+    return;
+  }
+
+  const [a, b] = seleccionados;
+
+  // Cada fila: [nombre del dato, función que saca ese dato de un personaje]
+  const datos = [
+    ["Estado", (p) => traducir(p.status)],
+    ["Especie", (p) => traducir(p.species)],
+    ["Tipo", (p) => p.type || "—"],
+    ["Género", (p) => traducir(p.gender)],
+    ["Origen", (p) => traducir(p.origin.name)],
+    ["Última ubicación", (p) => traducir(p.location.name)],
+    ["Episodios", (p) => p.episode.length],
+  ];
+
+  const filas = datos.map(([etiqueta, obtener]) => {
+    const valorA = obtener(a);
+    const valorB = obtener(b);
+    const iguales = valorA === valorB;
+    return `
+      <div class="comparar-fila ${iguales ? "igual" : ""}">
+        <dt>${etiqueta}${iguales ? " <span>✓ Coinciden</span>" : ""}</dt>
+        <dd>${valorA}</dd>
+        <dd>${valorB}</dd>
+      </div>`;
+  }).join("");
+
+  comparacion.innerHTML = `
+    <div class="comparar-cabecera">
+      <figure>
+        <img src="${a.image}" alt="Imagen de ${a.name}">
+        <figcaption>${a.name}</figcaption>
+      </figure>
+      <span class="vs">VS</span>
+      <figure>
+        <img src="${b.image}" alt="Imagen de ${b.name}">
+        <figcaption>${b.name}</figcaption>
+      </figure>
+    </div>
+    <dl class="comparar-tabla">${filas}</dl>
+    <button id="btn-limpiar-comparacion" class="boton" type="button">Limpiar comparación</button>
+  `;
+
+  document.getElementById("btn-limpiar-comparacion").addEventListener("click", () => {
+    seleccionados = [];
+    actualizarBotonesComparar();
+    mostrarComparacion();
+  });
+}
+
 // Eventos
 const buscarConRetraso = debounce(() => cargarPersonajes(true), 500);
 buscador.addEventListener("input", buscarConRetraso);
@@ -345,4 +454,5 @@ pestanas.addEventListener("click", (e) => {
 
 // Carga inicial: primero los favoritos guardados, luego los personajes
 mostrarFavoritos();
+mostrarComparacion();
 cargarPersonajes();
