@@ -1,176 +1,101 @@
-/* ===== 1. Variables de color (paleta inspirada en la serie) ===== */
-:root {
-  --verde-portal: #97ce4c;   /* verde del portal */
-  --verde-neon: #b2df28;
-  --azul-oscuro: #0b1d2e;    /* fondo espacial */
-  --azul-medio: #12344d;
-  --azul-cielo: #44c8f5;     /* azul del pelo de Rick */
-  --texto: #e6f4f1;
-  --texto-suave: #9fb8c4;
+// URL base del endpoint de personajes. Cada página trae 20 personajes.
+const API_URL = "https://rickandmortyapi.com/api/character";
 
-  --vivo: #55cc44;
-  --muerto: #e05252;
-  --desconocido: #9e9e9e;
+// Referencias a los elementos del HTML
+const lista = document.getElementById("lista-personajes");
+const estado = document.getElementById("estado");
+const btnMas = document.getElementById("btn-mas");
+
+// Guardamos la URL de la siguiente página que nos da la API
+let siguientePagina = API_URL;
+
+// Traducciones simples para mostrar los datos en español
+const TRADUCCIONES = {
+  Alive: "Vivo",
+  Dead: "Muerto",
+  unknown: "Desconocido",
+  Male: "Masculino",
+  Female: "Femenino",
+  Genderless: "Sin género",
+  Human: "Humano",
+  Alien: "Alienígena",
+};
+const traducir = (texto) => TRADUCCIONES[texto] ?? texto;
+
+/**
+ * Pide una página de personajes a la API.
+ * async/await nos permite escribir código asíncrono como si fuera secuencial.
+ */
+async function obtenerPersonajes(url) {
+  const respuesta = await fetch(url);
+
+  // fetch NO lanza error con códigos 404/500, así que lo revisamos nosotros
+  if (!respuesta.ok) {
+    throw new Error(`Error HTTP ${respuesta.status}`);
+  }
+
+  return respuesta.json(); // { info: {...}, results: [...] }
 }
 
-/* ===== 2. Reset básico ===== */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box; /* el padding no agranda las cajas */
+/**
+ * Crea una "descripción" a partir de los datos del personaje,
+ * ya que la API no trae un campo de texto descriptivo.
+ */
+function crearDescripcion(p) {
+  const tipo = p.type ? ` (${p.type})` : "";
+  return `${traducir(p.species)}${tipo}, ${traducir(p.gender).toLowerCase()}. ` +
+         `Aparece en ${p.episode.length} episodio${p.episode.length === 1 ? "" : "s"}.`;
 }
 
-body {
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  background: radial-gradient(circle at top, var(--azul-medio), var(--azul-oscuro) 70%);
-  background-attachment: fixed;
-  color: var(--texto);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+/** Construye el HTML de una tarjeta para un personaje */
+function crearTarjeta(p) {
+  const tarjeta = document.createElement("article");
+  tarjeta.className = "tarjeta";
+
+  tarjeta.innerHTML = `
+    <img src="${p.image}" alt="Imagen de ${p.name}" loading="lazy">
+    <div class="tarjeta-cuerpo">
+      <h2>${p.name}</h2>
+      <p class="estado-personaje">
+        <span class="punto ${p.status.toLowerCase()}"></span>
+        ${traducir(p.status)} – ${traducir(p.species)}
+      </p>
+      <p class="dato"><strong>Descripción</strong>${crearDescripcion(p)}</p>
+      <p class="dato"><strong>Origen</strong>${traducir(p.origin.name)}</p>
+      <p class="dato"><strong>Última ubicación conocida</strong>${traducir(p.location.name)}</p>
+    </div>
+  `;
+
+  return tarjeta;
 }
 
-/* ===== 3. Encabezado ===== */
-.encabezado {
-  text-align: center;
-  padding: 2.5rem 1rem 1.5rem;
+/** Carga la siguiente página y la agrega a la lista */
+async function cargarPersonajes() {
+  btnMas.disabled = true;
+  estado.textContent = "Abriendo un portal...";
+
+  try {
+    const datos = await obtenerPersonajes(siguientePagina);
+
+    // Agregamos cada personaje como tarjeta
+    datos.results.forEach((personaje) => {
+      lista.appendChild(crearTarjeta(personaje));
+    });
+
+    // info.next es null cuando ya no hay más páginas
+    siguientePagina = datos.info.next;
+    btnMas.hidden = !siguientePagina;
+    estado.textContent = "";
+  } catch (error) {
+    console.error(error);
+    estado.textContent = "¡Oh no! No se pudieron cargar los personajes. Intenta de nuevo.";
+  } finally {
+    btnMas.disabled = false;
+  }
 }
 
-.titulo {
-  /* clamp(mínimo, preferido, máximo): el tamaño se adapta a la pantalla */
-  font-size: clamp(2.2rem, 7vw, 4rem);
-  color: var(--verde-portal);
-  text-shadow: 0 0 12px var(--verde-neon), 0 0 30px rgba(151, 206, 76, 0.4);
-}
+// Eventos
+btnMas.addEventListener("click", cargarPersonajes);
 
-.titulo span {
-  color: var(--azul-cielo);
-  font-size: 0.6em;
-}
-
-.subtitulo {
-  color: var(--texto-suave);
-  margin-top: 0.5rem;
-}
-
-/* ===== 4. Contenedor y grid adaptable ===== */
-.contenedor {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem 2rem;
-  flex: 1;
-}
-
-.grid {
-  display: grid;
-  /* La magia responsive: crea tantas columnas como quepan de mínimo 260px.
-     En celular queda 1 columna; en computadora, 3 o 4. */
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1.5rem;
-}
-
-/* ===== 5. Tarjeta de personaje ===== */
-.tarjeta {
-  background: rgba(18, 52, 77, 0.85);
-  border: 2px solid transparent;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
-  transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
-}
-
-.tarjeta:hover {
-  transform: translateY(-6px);
-  border-color: var(--verde-portal);
-  box-shadow: 0 0 20px rgba(151, 206, 76, 0.5);
-}
-
-.tarjeta img {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-  display: block;
-}
-
-.tarjeta-cuerpo {
-  padding: 1rem 1.2rem 1.3rem;
-}
-
-.tarjeta h2 {
-  font-size: 1.25rem;
-  color: var(--verde-portal);
-  margin-bottom: 0.4rem;
-}
-
-.estado-personaje {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 600;
-  margin-bottom: 0.8rem;
-}
-
-/* Puntito de color según si está vivo, muerto o desconocido */
-.punto {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--desconocido);
-}
-.punto.alive { background: var(--vivo); box-shadow: 0 0 6px var(--vivo); }
-.punto.dead  { background: var(--muerto); }
-
-.dato {
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
-  line-height: 1.4;
-}
-
-.dato strong {
-  display: block;
-  color: var(--azul-cielo);
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-/* ===== 6. Estado, botón y pie ===== */
-.estado {
-  text-align: center;
-  color: var(--azul-cielo);
-  margin: 1rem 0;
-}
-
-.boton {
-  display: block;
-  margin: 2rem auto 0;
-  padding: 0.8rem 2rem;
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--azul-oscuro);
-  background: var(--verde-portal);
-  border: none;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.2s;
-}
-
-.boton:hover { background: var(--verde-neon); transform: scale(1.05); }
-.boton:disabled { opacity: 0.6; cursor: wait; }
-
-.pie {
-  text-align: center;
-  padding: 1.5rem 1rem;
-  color: var(--texto-suave);
-  font-size: 0.85rem;
-}
-
-.pie a { color: var(--azul-cielo); }
-
-/* ===== 7. Ajustes extra para pantallas pequeñas ===== */
-@media (max-width: 480px) {
-  .encabezado { padding-top: 1.5rem; }
-  .grid { gap: 1rem; }
-}
-
+// Carga inicial (20 personajes de la primera página)
+cargarPersonajes();
