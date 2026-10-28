@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorador de Rick and Morty</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Personajes de Rick and Morty</h1>
+        <input type="text" id="searchInput" placeholder="Buscar personaje...">
+        <select id="statusFilter">
+            <option value="">Todos</option>
+            <option value="Alive">Vivo</option>
+            <option value="Dead">Muerto</option>
+            <option value="unknown">Desconocido</option>
+        </select>
+        <button id="showFavorites">Ver Favoritos</button>
+    </header>
+    <main>
+        <div id="error-message"></div>
+        <div id="characters-container"></div>
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>
