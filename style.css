@@ -222,12 +222,6 @@ body {
   margin-bottom: 1rem;
 }
 
-.favoritos {
-  margin-bottom: 2.5rem;
-  padding-bottom: 2rem;
-  border-bottom: 2px dashed var(--azul-medio);
-}
-
 /* Para poder colocar la estrella encima de la foto */
 .tarjeta { position: relative; }
 
@@ -297,4 +291,43 @@ body {
 .mensaje.cargando h3 {
   color: var(--azul-cielo);
   font-weight: 500;
+}
+
+/* ===== 11. Pestañas (Personajes / Favoritos) ===== */
+.pestanas {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.4rem;
+  margin-bottom: 2rem;
+  padding: 0.4rem;
+  background: rgba(11, 29, 46, 0.8);
+  border: 2px solid var(--azul-medio);
+  border-radius: 16px;
+}
+
+.pestana {
+  padding: 0.7rem 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--texto-suave);
+  background: none;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.pestana:hover { color: var(--texto); }
+
+.pestana.activa {
+  color: var(--azul-oscuro);
+  background: var(--verde-portal);
+}
+
+/* Texto de ayuda cuando no hay favoritos */
+.ayuda {
+  color: var(--texto-suave);
+  text-align: center;
+  line-height: 1.5;
+  margin: 1rem 0 2rem;
 }
