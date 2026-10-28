@@ -21,6 +21,11 @@
   box-sizing: border-box; /* el padding no agranda las cajas */
 }
 
+/* Garantiza que el atributo "hidden" siempre oculte, aunque otra regla ponga display */
+[hidden] {
+  display: none !important;
+}
+
 body {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   background: radial-gradient(circle at top, var(--azul-medio), var(--azul-oscuro) 70%);
@@ -249,4 +254,49 @@ body {
   color: var(--azul-oscuro);
   background: var(--verde-portal);
   border-color: var(--verde-neon);
+}
+
+
+/* ===== 10. Mensajes amigables (sin resultados / errores) ===== */
+.mensaje {
+  max-width: 480px;
+  margin: 1rem auto 2rem;
+  padding: 1.5rem;
+  text-align: center;
+  background: rgba(18, 52, 77, 0.85);
+  border: 2px solid var(--azul-cielo);
+  border-radius: 16px;
+}
+
+.mensaje-icono {
+  display: block;
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.mensaje h3 {
+  color: var(--texto);
+  font-size: 1.2rem;
+  margin-bottom: 0.4rem;
+}
+
+.mensaje p {
+  color: var(--texto-suave);
+  line-height: 1.5;
+}
+
+.mensaje .boton { margin-top: 1.2rem; }
+
+.mensaje.error { border-color: var(--muerto); }
+.mensaje.error h3 { color: #ff8a8a; }
+
+/* El "cargando" es discreto: sin caja, solo texto */
+.mensaje.cargando {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+}
+.mensaje.cargando h3 {
+  color: var(--azul-cielo);
+  font-weight: 500;
 }
