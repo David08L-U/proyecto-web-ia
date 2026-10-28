@@ -1,4 +1,3 @@
-
 /* ===== 1. Variables de color (paleta inspirada en la serie) ===== */
 :root {
   --verde-portal: #97ce4c;   /* verde del portal */
@@ -255,7 +254,6 @@ body {
   background: var(--verde-portal);
   border-color: var(--verde-neon);
 }
-
 
 /* ===== 10. Mensajes amigables (sin resultados / errores) ===== */
 .mensaje {
