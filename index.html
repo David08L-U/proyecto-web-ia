@@ -1,27 +1,33 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Explorador de Rick and Morty</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <!-- Esta etiqueta es CLAVE para el diseño adaptable en celulares -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rick and Morty | Personajes</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header>
-        <h1>Personajes de Rick and Morty</h1>
-        <input type="text" id="searchInput" placeholder="Buscar personaje...">
-        <select id="statusFilter">
-            <option value="">Todos</option>
-            <option value="Alive">Vivo</option>
-            <option value="Dead">Muerto</option>
-            <option value="unknown">Desconocido</option>
-        </select>
-        <button id="showFavorites">Ver Favoritos</button>
-    </header>
-    <main>
-        <div id="error-message"></div>
-        <div id="characters-container"></div>
-    </main>
-    <script src="script.js"></script>
+  <header class="encabezado">
+    <h1 class="titulo">Rick <span>and</span> Morty</h1>
+    <p class="subtitulo">Explorador de personajes del multiverso</p>
+  </header>
+
+  <main class="contenedor">
+    <!-- Mensaje de estado: "Cargando...", errores, etc. -->
+    <p id="estado" class="estado">Abriendo un portal...</p>
+
+    <!-- Aquí JavaScript insertará las tarjetas de los personajes -->
+    <section id="lista-personajes" class="grid"></section>
+
+    <button id="btn-mas" class="boton" hidden>Cargar más personajes</button>
+  </main>
+
+  <footer class="pie">
+    Datos de <a href="https://rickandmortyapi.com" target="_blank" rel="noopener">The Rick and Morty API</a>
+  </footer>
+
+  <!-- El script va al final para que el HTML ya exista cuando se ejecute -->
+  <script src="app.js"></script>
 </body>
 </html>
