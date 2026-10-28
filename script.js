@@ -62,13 +62,6 @@ async function obtenerPersonajes(url) {
   }
 }
 
-  if (!respuesta.ok) {
-    throw new Error(`Error HTTP ${respuesta.status}`);
-  }
-
-  return respuesta.json(); // { info: {...}, results: [...] }
-}
-
 /**
  * Crea una "descripción" a partir de los datos del personaje,
  * ya que la API no trae un campo de texto descriptivo.
@@ -86,7 +79,7 @@ function crearTarjeta(p) {
 
   tarjeta.innerHTML = `
     <img src="${p.image}" alt="Imagen de ${p.name}" loading="lazy">
-        <button class="btn-fav" data-id="${p.id}" type="button"></button>
+    <button class="btn-fav" data-id="${p.id}" type="button"></button>
     <div class="tarjeta-cuerpo">
       <h2>${p.name}</h2>
       <p class="estado-personaje">
@@ -98,7 +91,7 @@ function crearTarjeta(p) {
       <p class="dato"><strong>Última ubicación conocida</strong>${traducir(p.location.name)}</p>
     </div>
   `;
-  
+
   // Botón de favorito: la función flecha "recuerda" a qué personaje pertenece
   const btnFav = tarjeta.querySelector(".btn-fav");
   pintarBotonFav(btnFav, esFavorito(p.id));
@@ -106,6 +99,7 @@ function crearTarjeta(p) {
 
   return tarjeta;
 }
+
 /* ===== Mensajes amigables en pantalla ===== */
 
 /**
@@ -209,10 +203,12 @@ async function cargarPersonajes(reiniciar = false) {
     siguientePagina = construirUrl();
   }
   const miPeticion = ++peticionActual;
+  btnMas.disabled = true;
+  mostrarMensaje({ tipo: "cargando", titulo: "🌀 Abriendo un portal..." });
 
   try {
     const datos = await obtenerPersonajes(siguientePagina);
-    
+
     // Si mientras esperábamos llegó una búsqueda más nueva, ignoramos esta respuesta vieja
     if (miPeticion !== peticionActual) return;
 
@@ -224,14 +220,12 @@ async function cargarPersonajes(reiniciar = false) {
     // info.next es null cuando ya no hay más páginas
     siguientePagina = datos.info.next;
     btnMas.hidden = !siguientePagina;
-         if (lista.children.length === 0) {
+    if (lista.children.length === 0) {
       mostrarSinResultados();
     } else {
       limpiarMensaje();
     }
-      ? "No se encontró ningún personaje en este universo 🛸"
-      : "";
-   } catch (error) {
+  } catch (error) {
     // Si el usuario ya hizo otra búsqueda, este error ya no importa
     if (miPeticion !== peticionActual) return;
     console.error(error);
