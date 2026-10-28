@@ -8,8 +8,10 @@ const btnMas = document.getElementById("btn-mas");
 const buscador = document.getElementById("buscador");
 const filtroEstado = document.getElementById("filtro-estado");
 const filtroEspecie = document.getElementById("filtro-especie");
-const seccionFavoritos = document.getElementById("seccion-favoritos");
+const favoritosVacio = document.getElementById("favoritos-vacio");
 const listaFavoritos = document.getElementById("lista-favoritos");
+const pestanas = document.querySelector(".pestanas");
+const contadorFavoritos = document.getElementById("contador-favoritos");
 
 // Guardamos la URL de la siguiente página que nos da la API
 let siguientePagina = API_URL;
@@ -306,12 +308,28 @@ function alternarFavorito(p) {
   mostrarFavoritos();
 }
 
-/** Dibuja la sección de favoritos (se oculta si está vacía) */
+/** Dibuja la sección de favoritos y actualiza el contador de la pestaña */
 function mostrarFavoritos() {
   const favoritos = leerFavoritos();
   listaFavoritos.innerHTML = "";
   favoritos.forEach((p) => listaFavoritos.appendChild(crearTarjeta(p)));
-  seccionFavoritos.hidden = favoritos.length === 0;
+  favoritosVacio.hidden = favoritos.length > 0;
+  contadorFavoritos.textContent = favoritos.length;
+}
+
+/* ===== Pestañas ===== */
+
+/** Muestra solo la sección elegida y marca su pestaña como activa */
+function cambiarVista(nombre) {
+  document.querySelectorAll(".vista").forEach((vista) => {
+    vista.hidden = vista.id !== `vista-${nombre}`;
+  });
+  document.querySelectorAll(".pestana").forEach((pestana) => {
+    const activa = pestana.dataset.vista === nombre;
+    pestana.classList.toggle("activa", activa);
+    pestana.setAttribute("aria-selected", activa);
+  });
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 // Eventos
@@ -320,6 +338,10 @@ buscador.addEventListener("input", buscarConRetraso);
 filtroEstado.addEventListener("change", () => cargarPersonajes(true));
 filtroEspecie.addEventListener("change", () => cargarPersonajes(true));
 btnMas.addEventListener("click", () => cargarPersonajes());
+pestanas.addEventListener("click", (e) => {
+  const pestana = e.target.closest(".pestana");
+  if (pestana) cambiarVista(pestana.dataset.vista);
+});
 
 // Carga inicial: primero los favoritos guardados, luego los personajes
 mostrarFavoritos();
