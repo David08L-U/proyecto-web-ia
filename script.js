@@ -38,13 +38,29 @@ const traducir = (texto) => TRADUCCIONES[texto] ?? texto;
  * async/await nos permite escribir código asíncrono como si fuera secuencial.
  */
 async function obtenerPersonajes(url) {
-  const respuesta = await fetch(url);
+  // Si la API no responde en 8 segundos, cancelamos la petición
+  const controlador = new AbortController();
+  const limite = setTimeout(() => controlador.abort(), 8000);
 
-  // fetch NO lanza error con códigos 404/500, así que lo revisamos nosotros
+  try {
+    const respuesta = await fetch(url, { signal: controlador.signal });
+
     // La API responde 404 cuando una búsqueda no tiene resultados: no es un error real
-  if (respuesta.status === 404) {
-    return { info: { next: null }, results: [] };
+    if (respuesta.status === 404) {
+      return { info: { next: null }, results: [] };
+    }
+
+    // fetch NO lanza error con códigos 500, así que lo revisamos nosotros
+    if (!respuesta.ok) {
+      throw new Error(`Error HTTP ${respuesta.status}`);
+    }
+
+    return await respuesta.json(); // { info: {...}, results: [...] }
+  } finally {
+    // Pase lo que pase, apagamos el temporizador
+    clearTimeout(limite);
   }
+}
 
   if (!respuesta.ok) {
     throw new Error(`Error HTTP ${respuesta.status}`);
@@ -90,6 +106,100 @@ function crearTarjeta(p) {
 
   return tarjeta;
 }
+/* ===== Mensajes amigables en pantalla ===== */
+
+/**
+ * Muestra una caja de mensaje en el área de estado.
+ * Usamos textContent (no innerHTML) para que lo que escribe el usuario
+ * nunca se interprete como código HTML.
+ */
+function mostrarMensaje({ tipo, icono = "", titulo, texto = "", accion = null }) {
+  const caja = document.createElement("div");
+  caja.className = `mensaje ${tipo}`;
+
+  if (icono) {
+    const spanIcono = document.createElement("span");
+    spanIcono.className = "mensaje-icono";
+    spanIcono.textContent = icono;
+    caja.appendChild(spanIcono);
+  }
+
+  const h3 = document.createElement("h3");
+  h3.textContent = titulo;
+  caja.appendChild(h3);
+
+  if (texto) {
+    const p = document.createElement("p");
+    p.textContent = texto;
+    caja.appendChild(p);
+  }
+
+  // Botón opcional, por ejemplo "Reintentar"
+  if (accion) {
+    const boton = document.createElement("button");
+    boton.type = "button";
+    boton.className = "boton";
+    boton.textContent = accion.texto;
+    boton.addEventListener("click", accion.alHacerClic);
+    caja.appendChild(boton);
+  }
+
+  estado.replaceChildren(caja);
+}
+
+function limpiarMensaje() {
+  estado.replaceChildren();
+}
+
+/** Caso 1: la búsqueda no encontró a nadie */
+function mostrarSinResultados() {
+  const nombre = buscador.value.trim();
+  const hayFiltros = filtroEstado.value || filtroEspecie.value;
+
+  mostrarMensaje({
+    tipo: "vacio",
+    icono: "🔍",
+    titulo: nombre ? `No encontramos a "${nombre}"` : "No hay personajes con esos filtros",
+    texto: hayFiltros
+      ? "Revisa cómo está escrito el nombre o prueba quitando algunos filtros."
+      : "Revisa cómo está escrito el nombre o intenta con otro, por ejemplo: Rick, Morty o Summer.",
+    accion: { texto: "Limpiar búsqueda", alHacerClic: limpiarBusqueda },
+  });
+}
+
+function limpiarBusqueda() {
+  buscador.value = "";
+  filtroEstado.value = "";
+  filtroEspecie.value = "";
+  cargarPersonajes(true);
+}
+
+/** Caso 2: no pudimos hablar con la API (sin internet, caída o muy lenta) */
+function mostrarError(error) {
+  let icono, titulo, texto;
+
+  if (!navigator.onLine) {
+    icono = "📡";
+    titulo = "Sin conexión a internet";
+    texto = "Parece que no tienes internet. Revisa tu Wi-Fi o tus datos y vuelve a intentarlo.";
+  } else if (error.name === "AbortError") {
+    icono = "⏳";
+    titulo = "El servidor está tardando demasiado";
+    texto = "La página de Rick and Morty no respondió a tiempo. Espera unos segundos y vuelve a intentarlo.";
+  } else {
+    icono = "🛸";
+    titulo = "No pudimos conectar con el multiverso";
+    texto = "El servicio de Rick and Morty no está disponible en este momento. No es tu culpa: inténtalo de nuevo más tarde.";
+  }
+
+  mostrarMensaje({
+    tipo: "error",
+    icono,
+    titulo,
+    texto,
+    accion: { texto: "Reintentar", alHacerClic: () => cargarPersonajes() },
+  });
+}
 
 /** Carga la siguiente página y la agrega a la lista */
 async function cargarPersonajes(reiniciar = false) {
@@ -114,12 +224,19 @@ async function cargarPersonajes(reiniciar = false) {
     // info.next es null cuando ya no hay más páginas
     siguientePagina = datos.info.next;
     btnMas.hidden = !siguientePagina;
-        estado.textContent = lista.children.length === 0
+         if (lista.children.length === 0) {
+      mostrarSinResultados();
+    } else {
+      limpiarMensaje();
+    }
       ? "No se encontró ningún personaje en este universo 🛸"
       : "";
-  } catch (error) {
+   } catch (error) {
+    // Si el usuario ya hizo otra búsqueda, este error ya no importa
+    if (miPeticion !== peticionActual) return;
     console.error(error);
-    estado.textContent = "¡Oh no! No se pudieron cargar los personajes. Intenta de nuevo.";
+    btnMas.hidden = true;
+    mostrarError(error);
   } finally {
     btnMas.disabled = false;
   }
