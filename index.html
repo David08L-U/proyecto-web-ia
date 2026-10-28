@@ -14,6 +14,38 @@
   </header>
 
   <main class="contenedor">
+    
+        <!-- Buscador y filtros -->
+    <section class="controles">
+      <input id="buscador" class="buscador" type="search"
+             placeholder="Busca un personaje... (ej. Rick)" autocomplete="off">
+      <div class="filtros">
+        <select id="filtro-estado" class="filtro" aria-label="Filtrar por estado">
+          <option value="">Todos los estados</option>
+          <option value="alive">Vivos</option>
+          <option value="dead">Muertos</option>
+          <option value="unknown">Desconocido</option>
+        </select>
+        <select id="filtro-especie" class="filtro" aria-label="Filtrar por especie">
+          <option value="">Todas las especies</option>
+          <option value="human">Humano</option>
+          <option value="alien">Alienígena</option>
+          <option value="humanoid">Humanoide</option>
+          <option value="robot">Robot</option>
+          <option value="animal">Animal</option>
+          <option value="mythological creature">Criatura mitológica</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Favoritos guardados en localStorage (se oculta si está vacía) -->
+    <section id="seccion-favoritos" class="favoritos" hidden>
+      <h2 class="seccion-titulo">⭐ Favoritos</h2>
+      <div id="lista-favoritos" class="grid"></div>
+    </section>
+
+    <h2 class="seccion-titulo">Personajes</h2>
+
     <!-- Mensaje de estado: "Cargando...", errores, etc. -->
     <p id="estado" class="estado">Abriendo un portal...</p>
 
